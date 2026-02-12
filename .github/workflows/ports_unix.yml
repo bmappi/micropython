@@ -372,3 +372,44 @@ jobs:
     - name: Print failures
       if: failure()
       run: tests/run-tests.py --print-failures
+  
+  alpine_static:
+    runs-on: ubuntu-latest
+    container:
+      image: alpine:3.20
+
+    steps:
+    - name: Install build dependencies
+      run: |
+        apk add --no-cache \
+          build-base \
+          git \
+          python3 \
+          py3-pip \
+          bash \
+          file
+
+    - uses: actions/checkout@v6
+
+    - name: Build mpy-cross
+      run: make -C mpy-cross
+
+    - name: Build static musl binary
+      run: |
+        make -C ports/unix \
+          VARIANT=standard \
+          CC=musl-gcc \
+          CFLAGS_EXTRA="-static -Os" \
+          LDFLAGS_EXTRA="-static"
+
+    - name: Strip binary (reduce size)
+      run: |
+        strip ports/unix/build-standard/micropython
+
+    - name: Verify static linking
+      run: |
+        file ports/unix/build-standard/micropython
+        ldd ports/unix/build-standard/micropython || true
+
+    - name: Upload artifact
+      uses: actions/upload-artifact@v4

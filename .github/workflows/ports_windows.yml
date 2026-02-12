@@ -97,6 +97,18 @@ jobs:
       if: failure() && steps.test_mpy.conclusion == 'failure'
       working-directory: tests
       run: python run-tests.py --print-failures
+    - name: Upload micropython.exe artifact
+      if: success()
+      uses: actions/upload-artifact@v4
+      with:
+        name: micropython-windows-vs-${{ matrix.visualstudio }}-${{ matrix.platform }}-${{ matrix.configuration }}-${{ matrix.variant }}
+        path: ${{ steps.get_path.outputs.micropython }}
+    - name: Upload mpy-cross.exe artifact
+      if: success()
+      uses: actions/upload-artifact@v4
+      with:
+        name: mpy-cross-windows-vs-${{ matrix.visualstudio }}-${{ matrix.platform }}-${{ matrix.configuration }}
+        path: mpy-cross/${{ matrix.platform }}/${{ matrix.configuration }}/mpy-cross.exe
 
   build-mingw:
     strategy:
@@ -146,6 +158,18 @@ jobs:
       if: failure() && steps.test.conclusion == 'failure'
       working-directory: tests
       run: python run-tests.py --print-failures
+    - name: Upload micropython.exe artifact
+      if: success()
+      uses: actions/upload-artifact@v4
+      with:
+        name: micropython-windows-${{ matrix.sys }}-${{ matrix.variant }}
+        path: ports/windows/micropython.exe
+    - name: Upload mpy-cross.exe artifact
+      if: success()
+      uses: actions/upload-artifact@v4
+      with:
+        name: mpy-cross-windows-${{ matrix.sys }}
+        path: mpy-cross/mpy-cross.exe
 
   cross-build-on-linux:
     runs-on: ubuntu-latest
@@ -155,3 +179,8 @@ jobs:
       run: tools/ci.sh windows_setup
     - name: Build
       run: tools/ci.sh windows_build
+    - name: Upload cross-built artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: micropython-windows-cross-linux
+        path: ports/windows/micropython.exe
